@@ -1,14 +1,314 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#e9ece7" />
-    <meta name="description" content="A scientific calculator with interactive graphing and calculus tools." />
-    <title>Kepler | Scientific calculator</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ShopSphere - a modern demo shopping website.">
+  <title>ShopSphere | Online Shopping</title>
+  <style>
+    :root {
+      --ink: #172033; --muted: #667085; --brand: #4f46e5;
+      --brand-dark: #3730a3; --surface: #ffffff; --page: #f5f6fb;
+      --line: #e6e8ef; --green: #16834a; --shadow: 0 8px 28px #17203312;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--page); }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .container { width: min(1120px, calc(100% - 32px)); margin: auto; }
+    header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+    .topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .logo { font-size: 1.45rem; font-weight: 850; letter-spacing: -.7px; color: var(--brand-dark); }
+    .logo span { color: #f59e0b; }
+    .cart-top, .nav-btn, .secondary { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 9px 13px; }
+    nav { display: flex; gap: 8px; overflow-x: auto; padding: 0 0 13px; }
+    .nav-btn { white-space: nowrap; padding: 8px 13px; }
+    .nav-btn.active, .primary { color: white; background: var(--brand); border-color: var(--brand); }
+    main { padding: 24px 0 40px; min-height: 70vh; }
+    .hero { color: white; border-radius: 20px; padding: clamp(24px, 5vw, 48px); background: linear-gradient(115deg, #172554, #4338ca 65%, #7c3aed); box-shadow: var(--shadow); }
+    .eyebrow { font-size: .76rem; text-transform: uppercase; letter-spacing: 2px; opacity: .82; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.06; margin: 12px 0; letter-spacing: -1.5px; }
+    .hero p { max-width: 560px; color: #e4e7ff; line-height: 1.6; }
+    .primary { border: 1px solid var(--brand); border-radius: 10px; padding: 10px 15px; font-weight: 700; }
+    .primary:hover { background: var(--brand-dark); }
+    .section-title { margin: 28px 0 14px; font-size: 1.35rem; }
+    .categories, .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .category, .card, .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 15px; padding: 15px; box-shadow: var(--shadow); }
+    .category { text-align: left; font-weight: 700; }
+    .category .emoji { display: block; font-size: 1.8rem; margin-bottom: 6px; }
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .product-image { height: 130px; display: grid; place-items: center; background: #f1f2fb; border-radius: 11px; font-size: 3.7rem; margin-bottom: 12px; }
+    .product-category, .muted { color: var(--muted); font-size: .85rem; }
+    .product-name { font-weight: 750; margin: 5px 0 9px; }
+    .price { font-size: 1.05rem; font-weight: 800; }
+    .old-price { color: var(--muted); text-decoration: line-through; font-size: .85rem; margin-left: 7px; }
+    .cashback { color: var(--green); font-size: .8rem; margin-top: 7px; }
+    .card .primary { width: 100%; margin-top: 13px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 9px; margin: 14px 0; }
+    input { border: 1px solid var(--line); background: white; border-radius: 10px; padding: 11px 12px; width: 100%; color: var(--ink); }
+    .toolbar input { flex: 1 1 220px; }
+    .toolbar button { padding: 8px 12px; }
+    .panel { margin-top: 16px; }
+    .cart-row { display: flex; align-items: center; gap: 14px; margin: 12px 0; }
+    .cart-emoji { font-size: 2rem; width: 48px; text-align: center; }
+    .cart-info { flex: 1; min-width: 0; }
+    .qty { display: flex; align-items: center; gap: 10px; margin-top: 7px; }
+    .qty button { border: 1px solid var(--line); border-radius: 8px; background: white; padding: 4px 11px; }
+    .remove { border: 0; background: transparent; color: #b42318; }
+    .summary-line { display: flex; justify-content: space-between; margin: 10px 0; gap: 12px; }
+    .summary-total { border-top: 1px solid var(--line); padding-top: 13px; font-size: 1.15rem; font-weight: 800; }
+    .empty { text-align: center; padding: 35px 12px; }
+    footer { border-top: 1px solid var(--line); background: white; padding: 22px 0; color: var(--muted); text-align: center; font-size: .82rem; }
+    .notice { background: #fff8e6; border: 1px solid #f3dfaa; color: #76520a; border-radius: 10px; padding: 12px; font-size: .88rem; line-height: 1.5; }
+    @media (max-width: 760px) { .categories { grid-template-columns: repeat(2, 1fr); } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px) { .grid { gap: 9px; } .card { padding: 10px; } .product-image { height: 105px; } .topbar { min-height: 62px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="topbar">
+        <a class="logo" href="#" aria-label="ShopSphere home">Shop<span>Sphere</span></a>
+        <button class="cart-top" id="cartTop" type="button">🛒 Cart (<span id="cartCount">0</span>)</button>
+      </div>
+      <nav id="navigation" aria-label="Main navigation">
+        <button class="nav-btn active" data-page="home">Home</button>
+        <button class="nav-btn" data-page="products">Products</button>
+        <button class="nav-btn" data-page="offers">Offers</button>
+        <button class="nav-btn" data-page="cashback">Cashback</button>
+        <button class="nav-btn" data-page="enterprise">Enterprise</button>
+        <button class="nav-btn" data-page="fashion">Fashion</button>
+        <button class="nav-btn" data-page="cart">Cart</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="content" aria-live="polite"></main>
+
+  <footer>
+    <div class="container">© <span id="year"></span> ShopSphere Demo · Prices in INR · Sample catalogue only</div>
+  </footer>
+
+  <script>
+    "use strict";
+
+    const products = [
+      { id: 1, name: "Premium Smartphone", category: "Electronics", price: 24999, oldPrice: 29999, emoji: "📱", cashback: 5 },
+      { id: 2, name: "Android Tablet", category: "Tablets", price: 15999, oldPrice: 19999, emoji: "📲", cashback: 5 },
+      { id: 3, name: "Wireless Headphones", category: "Electronics", price: 2499, oldPrice: 3999, emoji: "🎧", cashback: 5 },
+      { id: 4, name: "Smart Watch", category: "Accessories", price: 3299, oldPrice: 4999, emoji: "⌚", cashback: 8 },
+      { id: 5, name: "Laptop", category: "Electronics", price: 52999, oldPrice: 59999, emoji: "💻", cashback: 5 },
+      { id: 6, name: "Bluetooth Speaker", category: "Electronics", price: 1999, oldPrice: 2999, emoji: "🔊", cashback: 5 },
+      { id: 7, name: "Fashion Backpack", category: "Fashion", price: 1499, oldPrice: 2199, emoji: "🎒", cashback: 10 },
+      { id: 8, name: "Classic Sneakers", category: "Fashion", price: 2299, oldPrice: 3299, emoji: "👟", cashback: 10 },
+      { id: 9, name: "Premium Sunglasses", category: "Fashion", price: 999, oldPrice: 1599, emoji: "🕶️", cashback: 8 },
+      { id: 10, name: "Business Monitor", category: "Enterprise", price: 12999, oldPrice: 15999, emoji: "🖥️", cashback: 5 },
+      { id: 11, name: "Office Keyboard", category: "Enterprise", price: 1299, oldPrice: 1799, emoji: "⌨️", cashback: 5 },
+      { id: 12, name: "Travel Watch", category: "Accessories", price: 1899, oldPrice: 2599, emoji: "⌚", cashback: 8 }
+    ];
+
+    const cart = {};
+    let currentPage = "home";
+    let currentFilter = "All";
+    let searchTerm = "";
+
+    const content = document.getElementById("content");
+    const money = amount => "₹" + amount.toLocaleString("en-IN");
+    const cartCount = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+    const cartSubtotal = () => products.reduce((sum, product) => sum + product.price * (cart[product.id] || 0), 0);
+    const cashbackTotal = () => products.reduce((sum, product) => sum + product.price * (cart[product.id] || 0) * product.cashback / 100, 0);
+
+    function updateCartCount() {
+      document.getElementById("cartCount").textContent = cartCount();
+    }
+
+    function productCard(product) {
+      return `
+        <article class="card">
+          <div class="product-image" aria-hidden="true">${product.emoji}</div>
+          <div class="product-category">${product.category}</div>
+          <div class="product-name">${product.name}</div>
+          <div><span class="price">${money(product.price)}</span><span class="old-price">${money(product.oldPrice)}</span></div>
+          <div class="cashback">${product.cashback}% illustrative cashback</div>
+          <button class="primary" data-add="${product.id}" type="button">Add to cart</button>
+        </article>`;
+    }
+
+    function productGrid(items) {
+      return `<div class="grid">${items.map(productCard).join("") || '<p class="muted">No products found.</p>'}</div>`;
+    }
+
+    function render() {
+      document.querySelectorAll(".nav-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === currentPage);
+      });
+      updateCartCount();
+
+      if (currentPage === "home") {
+        content.innerHTML = `
+          <section class="hero">
+            <div class="eyebrow">The grand shopping experience</div>
+            <h1>Big deals.<br>Better prices.</h1>
+            <p>Discover electronics, tablets, fashion accessories and business essentials — all in one place.</p>
+            <button class="primary" id="shopNow" type="button" style="background:white;color:#3730a3;border-color:white">Explore products →</button>
+          </section>
+          <h2 class="section-title">Shop by category</h2>
+          <div class="categories">
+            <button class="category" data-category="Electronics"><span class="emoji">📱</span>Electronics</button>
+            <button class="category" data-category="Tablets"><span class="emoji">📲</span>Tablets</button>
+            <button class="category" data-category="Accessories"><span class="emoji">⌚</span>Accessories</button>
+            <button class="category" data-category="Fashion"><span class="emoji">👟</span>Fashion</button>
+          </div>
+          <h2 class="section-title">Trending products</h2>
+          ${productGrid(products.slice(0, 6))}`;
+      } else if (currentPage === "products" || currentPage === "fashion") {
+        const base = currentPage === "fashion"
+          ? products.filter(p => p.category === "Fashion" || p.category === "Accessories")
+          : products;
+        const filtered = base.filter(p =>
+          (currentFilter === "All" || p.category === currentFilter) &&
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        content.innerHTML = `
+          <h1>${currentPage === "fashion" ? "Fashion & Accessories" : "Explore Products"}</h1>
+          <div class="toolbar">
+            <input id="searchInput" type="search" placeholder="Search products..." value="${escapeAttribute(searchTerm)}" aria-label="Search products">
+          </div>
+          <div class="toolbar">
+            ${["All", "Electronics", "Tablets", "Accessories", "Fashion", "Enterprise"].map(category =>
+              `<button class="secondary" data-filter="${category}" type="button">${category}</button>`
+            ).join("")}
+          </div>
+          ${productGrid(filtered)}`;
+      } else if (currentPage === "offers") {
+        content.innerHTML = `
+          <section class="hero"><div class="eyebrow">Special promotions</div><h1>Exclusive Offers</h1><p>Browse sample discounts on selected products.</p></section>
+          <h2 class="section-title">Featured deals</h2>
+          ${productGrid(products.filter(p => p.oldPrice > p.price))}`;
+      } else if (currentPage === "cashback") {
+        content.innerHTML = `
+          <section class="hero"><div class="eyebrow">Rewards and savings</div><h1>Cashback Rewards</h1><p>Find products with illustrative cashback rates.</p></section>
+          <div class="panel"><strong>How cashback works</strong><p class="muted">The percentage shown is a sample estimate for this demo. It is not a real bank, card, wallet or merchant offer.</p></div>
+          <h2 class="section-title">Cashback-eligible products</h2>
+          ${productGrid(products)}`;
+      } else if (currentPage === "enterprise") {
+        content.innerHTML = `
+          <section class="hero"><div class="eyebrow">For teams and organisations</div><h1>Enterprise Solutions</h1><p>Explore office technology and business essentials for teams, institutions and workplaces.</p></section>
+          <h2 class="section-title">Business essentials</h2>
+          ${productGrid(products.filter(p => p.category === "Enterprise" || p.category === "Electronics"))}
+          <section class="panel">
+            <h2 style="margin-top:0">Bulk purchase enquiry</h2>
+            <p class="muted">Enter a business email to see the demo form validation.</p>
+            <form id="enquiryForm">
+              <input id="businessEmail" type="email" placeholder="name@company.com" required>
+              <button class="primary" type="submit" style="margin-top:12px">Submit enquiry</button>
+            </form>
+            <p id="enquiryMessage" class="muted" role="status"></p>
+          </section>`;
+      } else if (currentPage === "cart") {
+        const selected = products.filter(p => cart[p.id]);
+        content.innerHTML = `
+          <h1>Your Shopping Cart</h1>
+          ${selected.length ? `
+            <section class="panel">
+              ${selected.map(p => `
+                <div class="cart-row">
+                  <div class="cart-emoji">${p.emoji}</div>
+                  <div class="cart-info">
+                    <strong>${p.name}</strong>
+                    <div class="muted">${money(p.price)} each</div>
+                    <div class="qty">
+                      <button type="button" data-minus="${p.id}" aria-label="Decrease quantity">−</button>
+                      <span>${cart[p.id]}</span>
+                      <button type="button" data-plus="${p.id}" aria-label="Increase quantity">+</button>
+                    </div>
+                  </div>
+                  <button class="remove" type="button" data-remove="${p.id}">Remove</button>
+                </div>`).join("")}
+            </section>
+            <section class="panel">
+              <div class="summary-line"><span>Subtotal</span><strong>${money(cartSubtotal())}</strong></div>
+              <div class="summary-line"><span>Estimated cashback</span><strong>${money(cashbackTotal())}</strong></div>
+              <div class="summary-line summary-total"><span>Order total</span><span>${money(cartSubtotal())}</span></div>
+              <button class="primary" id="checkout" type="button" style="width:100%">Continue to checkout</button>
+              <p class="muted">Demo only. No real order or payment will be processed.</p>
+            </section>` : `
+            <section class="panel empty"><div style="font-size:3rem">🛍️</div><h2>Your cart is empty</h2><p class="muted">Add a few products to see them here.</p><button class="primary" id="shopNow" type="button">Start shopping</button></section>`}`;
+      }
+    }
+
+    function escapeAttribute(value) {
+      return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    document.getElementById("navigation").addEventListener("click", event => {
+      const button = event.target.closest("[data-page]");
+      if (!button) return;
+      currentPage = button.dataset.page;
+      render();
+    });
+
+    document.getElementById("cartTop").addEventListener("click", () => {
+      currentPage = "cart";
+      render();
+    });
+
+    content.addEventListener("click", event => {
+      const button = event.target.closest("button");
+      if (!button) return;
+
+      if (button.id === "shopNow") {
+        currentPage = "products";
+        currentFilter = "All";
+        render();
+      } else if (button.dataset.category) {
+        currentPage = "products";
+        currentFilter = button.dataset.category;
+        render();
+      } else if (button.dataset.add) {
+        const id = Number(button.dataset.add);
+        cart[id] = (cart[id] || 0) + 1;
+        updateCartCount();
+        button.textContent = "✓ Added";
+      } else if (button.dataset.filter) {
+        currentFilter = button.dataset.filter;
+        render();
+      } else if (button.dataset.plus) {
+        cart[button.dataset.plus] += 1;
+        render();
+      } else if (button.dataset.minus) {
+        const id = button.dataset.minus;
+        cart[id] -= 1;
+        if (cart[id] <= 0) delete cart[id];
+        render();
+      } else if (button.dataset.remove) {
+        delete cart[button.dataset.remove];
+        render();
+      } else if (button.id === "checkout") {
+        alert("This is a front-end demo. Real checkout and payment processing are not enabled.");
+      }
+    });
+
+    content.addEventListener("input", event => {
+      if (event.target.id !== "searchInput") return;
+      searchTerm = event.target.value;
+      const cursor = event.target.selectionStart;
+      render();
+      const input = document.getElementById("searchInput");
+      input.focus();
+      input.setSelectionRange(cursor, cursor);
+    });
+
+    content.addEventListener("submit", event => {
+      if (event.target.id !== "enquiryForm") return;
+      event.preventDefault();
+      document.getElementById("enquiryMessage").textContent =
+        "Thanks! This demo form is working locally, but no enquiry has been sent.";
+      event.target.reset();
+    });
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+    render();
+  </script>
+</body>
 </html>
